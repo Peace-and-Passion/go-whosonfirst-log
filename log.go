@@ -1,6 +1,7 @@
 package log
 
 import (
+	"errors"
 	"fmt"
 	"io"
 	golog "log"
@@ -87,6 +88,25 @@ func NewWOFLogger(args ...string) *WOFLogger {
 	return &l
 }
 
+func (l WOFLogger) AddLevel(label string, minlevel int) error {
+
+	_, ok := l.levels[label]
+
+	if ok {
+		return errors.New("level already defined")
+	}
+
+	for _, l := range l.levels {
+
+		if l == minlevel {
+			return errors.New("there is already a level with that ...")
+		}
+	}
+
+	l.levels[label] = minlevel
+	return nil
+}
+
 func (l WOFLogger) AddLogger(out io.Writer, minlevel string) (bool, error) {
 
 	_, ok := l.writers[minlevel]
@@ -109,31 +129,31 @@ func (l WOFLogger) AddLogger(out io.Writer, minlevel string) (bool, error) {
 }
 
 func (l WOFLogger) Debug(format string, v ...interface{}) {
-	l.dispatch("debug", format, v...)
+	l.Dispatch("debug", format, v...)
 }
 
 func (l WOFLogger) Info(format string, v ...interface{}) {
-	l.dispatch("info", format, v...)
+	l.Dispatch("info", format, v...)
 }
 
 func (l WOFLogger) Status(format string, v ...interface{}) {
-	l.dispatch("status", format, v...)
+	l.Dispatch("status", format, v...)
 }
 
 func (l WOFLogger) Warning(format string, v ...interface{}) {
-	l.dispatch("warning", format, v...)
+	l.Dispatch("warning", format, v...)
 }
 
 func (l WOFLogger) Error(format string, v ...interface{}) {
-	l.dispatch("error", format, v...)
+	l.Dispatch("error", format, v...)
 }
 
 func (l WOFLogger) Fatal(format string, v ...interface{}) {
-	l.dispatch("fatal", format, v...)
+	l.Dispatch("fatal", format, v...)
 	os.Exit(1)
 }
 
-func (l WOFLogger) dispatch(level string, format string, v ...interface{}) {
+func (l WOFLogger) Dispatch(level string, format string, v ...interface{}) {
 
 	for minlevel, logger := range l.Loggers {
 
